@@ -1,0 +1,79 @@
+CREATE OR REPLACE TRIGGER SANKHYA.TRG_INC_TGFCAB_DEV_LUIZA
+BEFORE UPDATE
+OF AD_CONFERIDO
+ON SANKHYA.TGFCAB
+REFERENCING NEW AS NEW OLD AS OLD
+FOR EACH ROW
+DISABLE
+DECLARE
+
+tmpVar NUMBER;
+tmpVar_1 VARCHAR(100);
+var_dtneg  TGFCAB.DTENTSAI%TYPE;
+var_codemp TSIEMP.CODEMP%TYPE;
+var_maxnunota TGFCAB.NUNOTA%TYPE;
+
+CURSOR C1 (var_codemp_cursor TSIEMP.CODEMP%TYPE
+           ,var_codprod TGFITE.CODPROD%TYPE ) IS
+           -- cursor para buscsar as devoluções nda View LUIZA_DEVOLUCAO_COMPRA
+    SELECT CODPROD as prod, CODEMP as emp, NUNOTA as nrounico, DTENTSAI as dtlanc, CODPROD as produto
+         , CONTROLE as numeracao, CODPARC as parceiro, DISPONIVEL
+         FROM LUIZA_DEVOLUCAO_COMPRA
+         WHERE CODEMP = var_codemp_cursor
+         AND   CODPROD = var_codprod
+         AND   CONTROLE = var_controle
+         AND   DISPONIVEL >= var_qtdneg;
+          
+
+
+PRAGMA AUTONOMOUS_TRANSACTION; -- Pragma necessário para inserir dados na tabela que acionou a trigger (TGFCAB)
+BEGIN
+   tmpVar := 0;
+   
+   IF(:NEW.AD_CONFERIDO = 'S') THEN
+    
+   
+    
+    SELECT CODEMP INTO var_codemp
+    FROM TSIUSU WHERE CODUSU = :NEW.CODUSU; -- Select para buscar o código da empresa do usuário logado
+    
+    SELECT MAX(NUNOTA) +1 INTO var_maxnunota -- Select para pegar o maior nro unico da tabela TGFCAB e acrecentar +1 para a nova nota que está sendo inserida via esta trigger
+    FROM TGFCAB;
+   
+   FOR R1 IN (SELECT CODPROD, CONTROLE, QTDNEG FROM TGFITE WHERE NUNOTA = :NEW.NUNOTA) -- Loop para percorer a TGFITE filha da TGFCAB que acionou a trigger e buscar dados dos produtos lançados
+   
+    LOOP          
+                    
+
+    FOR R2 IN C1 ( var_codemp_cursor => var_codemp
+                 ,var_codprod => R1.CODPROD 
+                 ,var_controle => R1.CONTROLE
+                 ,var_qtdneg   => R1.QTDNEG) -- Chamada do cursor C1 com passagem de paramêtros na execução
+   
+     LOOP
+     
+     
+    
+     
+     IF C1%NOTFOUND then
+        tmpVar := tmpVar +1; -- armaneza quantas linhas não foram localizadas dentro do Cursor.
+        tmpVar_1 := tmpVar ||'/ '||C1.CODPROD; -- Armazena os produtos que não foram inseridos   
+     END IF;  
+     
+     SELECT CODTIPOPER --Seleciona  MAX(DHALTER) da top de devolução de acordo com o parceiro da nota de origem
+     
+     
+     
+     
+        
+     END LOOP; 
+    
+   
+    END LOOP;
+
+    
+   END IF;
+   
+COMMIT;   
+END TRG_INC_TGFCAB_DEV_LUIZA;
+/
