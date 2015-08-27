@@ -1,3 +1,5 @@
+DROP TRIGGER SANKHYA.TRG_INC_TGFCAB_DEV_LUIZA;
+
 CREATE OR REPLACE TRIGGER SANKHYA.TRG_INC_TGFCAB_DEV_LUIZA
 BEFORE UPDATE
 OF AD_CONFERIDO
@@ -7,11 +9,33 @@ FOR EACH ROW
 DISABLE
 DECLARE
 
+/******************************************************************************
+   NAME:       TRG_INC_TGFCAB_DEV_LUIZA
+   PURPOSE:    
+
+   REVISIONS:
+   Ver        Date        Author           Description
+   ---------  ----------  ---------------  ------------------------------------
+   1.0        20/08/2015      LBC-NOT       1. Created this trigger.
+
+   NOTES:
+
+   Automatically available Auto Replace Keywords:
+      Object Name:     TRG_INC_TGFCAB_DEV_LUIZA
+      Sysdate:         20/08/2015
+      Date and Time:   20/08/2015, 17:26:06, and 20/08/2015 17:26:06
+      Username:        LBC-NOT (set in TOAD Options, Proc Templates)
+      Table Name:      TGFCAB (set in the "New PL/SQL Object" dialog)
+      Trigger Options:  (set in the "New PL/SQL Object" dialog)
+******************************************************************************/
+
 tmpVar NUMBER;
 tmpVar_1 VARCHAR(100);
 var_dtneg  TGFCAB.DTENTSAI%TYPE;
 var_codemp TSIEMP.CODEMP%TYPE;
 var_maxnunota TGFCAB.NUNOTA%TYPE;
+var_top  TGFTOP.CODTIPOPER%TYPE;
+var_dttop TGFTOP.CODTIPOPER%TYPE;
 
 CURSOR C1 (var_codemp_cursor TSIEMP.CODEMP%TYPE
            ,var_codprod TGFITE.CODPROD%TYPE ) IS
@@ -60,8 +84,9 @@ BEGIN
         tmpVar_1 := tmpVar ||'/ '||C1.CODPROD; -- Armazena os produtos que não foram inseridos   
      END IF;  
      
-     SELECT CODTIPOPER --Seleciona  MAX(DHALTER) da top de devolução de acordo com o parceiro da nota de origem
-     
+     SELECT CODTIPOPER, DHALTER into var_top, var_dttop
+     FROM TGFTOP --Seleciona  MAX(DHALTER) da top de devolução de acordo com o parceiro da nota de origem
+     WHERE CODTIPOPER = DECODE(:NEW.AD_MOTIVODEV,1,206,case when c1.parceiro = 2 or c1.parceiro = 20614 then 0 end, 204,201)
      
      
      
