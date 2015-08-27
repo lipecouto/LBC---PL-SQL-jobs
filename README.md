@@ -1,0 +1,2 @@
+# LBC---PL-SQL-jobs
+___Trigger INC_TABELA_CURSOR AVANÇADO
